@@ -10,11 +10,11 @@ Stack: Cloudflare Pages (página y funciones) + D1 (base de datos). Sin build: l
 public/                     Lo que Cloudflare publica
   _tpl/pitch.tpl            La página del pitch (plantilla; solo la lee /p/<código>)
   admin/index.html          Panel de prospectos
-  index.html                Portada sin código: "solo por invitación"
   slides/, img/             Slides del deck, logos, fotos del equipo
   _headers, robots.txt      noindex y cabeceras de seguridad
   _routes.json              Qué rutas ejecutan funciones (el resto es estático y gratis)
 functions/                  Lógica de servidor
+  index.js                  / sin código (QR, link general): misma página, se cuenta como "Sin código"
   p/[code].js               Sirve la página al prospecto y registra la carga
   api/event.js              Recibe los eventos del navegador
   admin/api/[[path]].js     API del panel
@@ -77,6 +77,7 @@ Las variables normales (`SITE_URL`, `VIDEO_URL`, etc.) viven en `wrangler.toml`.
 5. Abre `/admin/` en una ventana privada: debe pedirte el código por correo. Cuando funcione, borra el secreto `ADMIN_TOKEN` para que el panel solo abra con Access (también en la dirección `*.pages.dev`).
 
 ## Uso diario
+- **Sin código (QR o link general):** `pitchdeck.dynerox.com/` muestra la página completa. Esas visitas aparecen en el panel en el renglón **Sin código**. Para apagarlo: panel → Sin código → *Apagar acceso sin código*; entonces `/` muestra "solo por invitación".
 - **Nuevo prospecto:** panel → Nuevo link → copiar y mandar.
 - **Revocar:** panel → prospecto → Revocar link. El link devuelve 404 al instante.
 - **Video:** cuando lo tengas, pon el link de YouTube o Vimeo (sin listar) en `VIDEO_URL` de `wrangler.toml` y haz commit. Sin link, la sección no aparece.

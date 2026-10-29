@@ -8,7 +8,7 @@
 //   POST  /admin/api/prospects/:id/revoke
 //   POST  /admin/api/prospects/:id/activate
 import { requireLevel } from '../../../src/lib/auth.js';
-import { json, newCode, nowIso } from '../../../src/lib/request.js';
+import { json, newCode, nowIso, PUBLIC_CODE } from '../../../src/lib/request.js';
 
 export async function onRequest(context) {
   const access = await requireLevel(context, 'admin');
@@ -18,7 +18,7 @@ export async function onRequest(context) {
   const parts = Array.isArray(params.path) ? params.path : [params.path].filter(Boolean);
   const method = request.method;
   const siteUrl = (env.SITE_URL || new URL(request.url).origin).replace(/\/$/, '');
-  const link = code => `${siteUrl}/p/${code}`;
+  const link = code => (code === PUBLIC_CODE ? `${siteUrl}/` : `${siteUrl}/p/${code}`);
 
   try {
     if (parts[0] === 'me' && method === 'GET') return json({ ok: true, via: access.admin.via, email: access.admin.email || null });
@@ -27,7 +27,7 @@ export async function onRequest(context) {
 
     if (parts.length === 1 && method === 'GET') {
       const { results } = await env.DB.prepare(LIST_SQL).all();
-      return json({ prospects: results.map(r => ({ ...r, link: link(r.code), forwarded: isForwarded(r) })) });
+      return json({ prospects: results.map(r => ({ ...r, link: link(r.code), is_public: r.code === PUBLIC_CODE, forwarded: r.code !== PUBLIC_CODE && isForwarded(r) })) });
     }
 
     if (parts.length === 1 && method === 'POST') {
@@ -78,7 +78,7 @@ export async function onRequest(context) {
         env.DB.prepare('SELECT at, country, city, device, os, browser, referrer FROM page_loads WHERE prospect_id = ? ORDER BY id DESC LIMIT 100').bind(id)
       ]);
       return json({
-        prospect: { ...p, link: link(p.code) },
+        prospect: { ...p, link: link(p.code), is_public: p.code === PUBLIC_CODE },
         visits: visits.results,
         events: events.results.map(e => ({ ...e, data: safeParse(e.data) })),
         bots: bots.results,

@@ -77,3 +77,7 @@ export function newCode(len = 10) {
   return out;
 }
 export const CODE_RE = /^[A-Za-z0-9]{8,12}$/;
+
+// Reserved code for visits without a code (QR, general link). Uppercase and zeros,
+// which newCode() never produces, so it cannot collide with a prospect's code.
+export const PUBLIC_CODE = 'PUBLIC0000';

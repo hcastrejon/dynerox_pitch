@@ -2,17 +2,29 @@
 // Every route calls it; no route checks access on its own.
 //
 // Levels, lowest to highest:
+//   'public'   : no code (QR, general link). Counted under the "Sin código" row
 //   'prospect' : a valid, active access code (/p/<code>, /api/event)
 //   'investor' : phase 2, signed-in person approved by Hugo who accepted the NDA (not built yet)
 //   'admin'    : Hugo. A valid Cloudflare Access token, or the ADMIN_TOKEN as a Bearer token
 //
 // Returns { ok: true, level, prospect?, admin? } or { ok: false, status, reason }.
 
-import { CODE_RE } from './request.js';
+import { CODE_RE, PUBLIC_CODE, nowIso } from './request.js';
 
 export async function requireLevel(context, level, opts = {}) {
   const { env } = context;
   switch (level) {
+    case 'public': {
+      const sel = env.DB.prepare('SELECT id, code, name, company, active FROM prospects WHERE code = ?').bind(PUBLIC_CODE);
+      let prospect = await sel.first();
+      if (!prospect) {
+        await env.DB.prepare('INSERT OR IGNORE INTO prospects (code, name, company, notes, created_at) VALUES (?,?,?,?,?)')
+          .bind(PUBLIC_CODE, 'Sin código', 'QR / link general', 'Visitas a la página sin código personal.', nowIso()).run();
+        prospect = await sel.first();
+      }
+      if (!prospect || !prospect.active) return deny(404, 'public-disabled');
+      return { ok: true, level, prospect };
+    }
     case 'prospect': {
       const code = String(opts.code || '');
       if (!CODE_RE.test(code)) return deny(404, 'bad-code');
