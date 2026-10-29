@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dynerox · Panel de prospectos</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#061021">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --navy: #061021; --navy-2: #0c1a33; --navy-3: #13244a; --line: rgba(255,255,255,.1);
+    --fg: #fff; --fg-2: rgba(255,255,255,.68); --fg-3: rgba(255,255,255,.44);
+    --green: #00bc0a; --blue: #00a8e8; --amber: #f2c94c; --red: #ff6b6b;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--navy); color: var(--fg); font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-text-size-adjust: 100%; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left)); }
+  header { position: sticky; top: 0; z-index: 5; background: rgba(6,16,33,.95); border-bottom: 1px solid var(--line); padding-top: env(safe-area-inset-top); }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; }
+  header img { height: 22px; width: auto; }
+  header small { color: var(--fg-3); font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  h1 { font-size: 26px; letter-spacing: -0.03em; margin: 28px 0 4px; }
+  h2 { font-size: 18px; letter-spacing: -0.02em; margin: 0 0 12px; }
+  .sub { color: var(--fg-2); margin: 0 0 22px; }
+  .panel { background: var(--navy-2); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+  form.new { display: grid; gap: 10px; grid-template-columns: 1fr; }
+  @media (min-width: 820px) { form.new { grid-template-columns: 1fr 1fr 1.4fr auto; align-items: end; } }
+  label { display: grid; gap: 4px; font-size: 12px; color: var(--fg-2); }
+  input, textarea { font: inherit; font-size: 16px; color: var(--fg); background: var(--navy); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-height: 44px; width: 100%; }
+  textarea { min-height: 80px; resize: vertical; }
+  input:focus, textarea:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+  button, .btn { font: 600 14px/1 Inter, system-ui, sans-serif; border: 0; border-radius: 10px; min-height: 44px; padding: 0 16px; cursor: pointer; color: #fff; background: rgba(255,255,255,.08); display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+  button.primary { background: var(--green); }
+  button.danger { background: rgba(255,107,107,.15); color: var(--red); }
+  button:disabled { opacity: .5; cursor: default; }
+  .created { margin-top: 14px; padding: 14px; border-radius: 12px; background: rgba(0,188,10,.12); border: 1px solid rgba(0,188,10,.4); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+  .created code { font-family: var(--mono); font-size: 14px; word-break: break-all; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin: 28px 0 12px; }
+  .toolbar input { max-width: 280px; }
+  .list { display: grid; gap: 10px; }
+  .row { display: grid; gap: 12px; grid-template-columns: 1fr; padding: 16px; border-radius: 14px; background: var(--navy-2); border: 1px solid var(--line); cursor: pointer; text-align: left; color: inherit; font: inherit; width: 100%; }
+  .row:hover { border-color: rgba(255,255,255,.25); }
+  @media (min-width: 900px) { .row { grid-template-columns: 1.6fr repeat(6, minmax(70px, .6fr)); align-items: center; } }
+  .who b { font-size: 16px; display: block; }
+  .who span { color: var(--fg-2); font-size: 13px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip { font: 600 11px/1 var(--mono); letter-spacing: .04em; padding: 5px 8px; border-radius: 999px; background: rgba(255,255,255,.07); color: var(--fg-2); }
+  .chip.ok { background: rgba(0,188,10,.15); color: #6be36f; }
+  .chip.warn { background: rgba(242,201,76,.15); color: var(--amber); }
+  .chip.off { background: rgba(255,107,107,.15); color: var(--red); }
+  .stat { display: flex; flex-direction: column; }
+  .stat b { font-size: 18px; font-variant-numeric: tabular-nums; }
+  .stat small { color: var(--fg-3); font-size: 11px; font-family: var(--mono); letter-spacing: .04em; text-transform: uppercase; }
+  @media (max-width: 899px) { .stats-m { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; } }
+  @media (min-width: 900px) { .stats-m { display: contents; } }
+  .empty { padding: 32px; text-align: center; color: var(--fg-2); border: 1px dashed var(--line); border-radius: 14px; }
+  /* detail drawer */
+  .drawer { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.55); display: flex; justify-content: flex-end; }
+  .drawer__in { width: min(760px, 100%); height: 100%; overflow-y: auto; background: var(--navy); border-left: 1px solid var(--line); padding: max(16px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) 18px; -webkit-overflow-scrolling: touch; }
+  .drawer__top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .grid4 { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); margin: 16px 0; }
+  @media (min-width: 640px) { .grid4 { grid-template-columns: repeat(4, 1fr); } }
+  .kpi { background: var(--navy-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  .kpi b { font-size: 20px; display: block; font-variant-numeric: tabular-nums; }
+  .kpi small { color: var(--fg-3); font-size: 11px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .04em; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
+  section.block { margin-top: 26px; }
+  .bars { display: grid; gap: 6px; }
+  .bar { display: grid; grid-template-columns: 110px 1fr 64px; gap: 10px; align-items: center; font-size: 13px; }
+  .bar i { display: block; height: 8px; border-radius: 4px; background: rgba(255,255,255,.08); overflow: hidden; }
+  .bar i span { display: block; height: 100%; background: var(--green); border-radius: 4px; }
+  .bar em { font-style: normal; color: var(--fg-2); text-align: right; font-variant-numeric: tabular-nums; }
+  .visit { border: 1px solid var(--line); border-radius: 12px; margin-top: 10px; overflow: hidden; }
+  .visit__head { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; padding: 10px 12px; background: var(--navy-2); font-size: 13px; }
+  .visit__head b { font-size: 14px; }
+  .tl { list-style: none; margin: 0; padding: 8px 12px 12px; font-size: 13px; }
+  .tl li { display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+  .tl time { color: var(--fg-3); font-family: var(--mono); font-size: 12px; }
+  .muted { color: var(--fg-3); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--fg-3); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .tablewrap { overflow-x: auto; }
+  .login { max-width: 420px; margin: 60px auto; }
+  .toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); transform: translateX(-50%); background: #fff; color: var(--navy); padding: 10px 16px; border-radius: 10px; font-weight: 600; z-index: 40; }
+  .err { color: var(--red); margin-top: 8px; font-size: 13px; }
+</style>
+</head>
+<body>
+<header><div class="wrap"><img src="/img/logo-light.webp" alt="Dynerox" width="96" height="22"><small>Panel de prospectos</small></div></header>
+
+<div class="wrap" id="loginView" hidden>
+  <div class="panel login">
+    <h2>Entrar al panel</h2>
+    <p class="sub" id="loginMsg">En producción entras con Cloudflare Access. Si estás configurando o probando, pega el ADMIN_TOKEN.</p>
+    <form id="loginForm">
+      <label for="tokenInput">Admin token<input id="tokenInput" type="password" autocomplete="off" required></label>
+      <div style="margin-top:12px"><button class="primary" type="submit">Entrar</button></div>
+      <p class="err" id="loginErr" hidden></p>
+    </form>
+  </div>
+</div>
+
+<main class="wrap" id="appView" hidden>
+  <h1>Prospectos</h1>
+  <p class="sub">Cada prospecto tiene su propio link. Una apertura cuenta solo cuando una persona hizo scroll o tocó la página.</p>
+
+  <div class="panel">
+    <h2>Nuevo link</h2>
+    <form class="new" id="newForm">
+      <label for="fName">Nombre<input id="fName" required maxlength="120" placeholder="Jane Doe"></label>
+      <label for="fCompany">Empresa<input id="fCompany" maxlength="120" placeholder="Acme Ventures"></label>
+      <label for="fNotes">Notas<input id="fNotes" maxlength="2000" placeholder="Dónde lo conociste, ticket, etc."></label>
+      <button class="primary" type="submit" id="fSubmit">Crear link</button>
+    </form>
+    <div class="created" id="created" hidden>
+      <div><div class="muted" id="createdWho"></div><code id="createdLink"></code></div>
+      <button type="button" id="createdCopy">Copiar link</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <h2 style="margin:0" id="countLabel">Todos</h2>
+    <input id="search" type="search" placeholder="Buscar nombre o empresa" aria-label="Buscar">
+  </div>
+  <div class="list" id="list"></div>
+</main>
+
+<div class="drawer" id="drawer" hidden role="dialog" aria-modal="true" aria-label="Detalle del prospecto">
+  <div class="drawer__in" id="drawerIn"></div>
+</div>
+
+<script>
+const SECTIONS = [
+  ['hero', 'Portada'], ['video', 'Video'], ['problem', 'Problema'], ['traction', 'Tracción'], ['how', 'Cómo funciona'],
+  ['insight', 'Insight'], ['team', 'Equipo'], ['market', 'Mercado'], ['deck', 'Deck'], ['contact', 'Contacto']
+];
+const SECTION_NAME = Object.fromEntries(SECTIONS);
+const LINK_NAME = {
+  nav_contact: 'botón Contact us', hero_deck: 'View the deck', hero_contact: 'Contact founders', deck_contact: 'Contact en la slide',
+  copy_partnerships: 'copió partnerships@', mail_partnerships: 'email a partnerships@', copy_compliance: 'copió compliance@', mail_compliance: 'email a compliance@',
+  li_hugo: 'LinkedIn de Hugo', li_roberto: 'LinkedIn de Roberto', li_hugo_team: 'LinkedIn de Hugo (equipo)', li_roberto_team: 'LinkedIn de Roberto (equipo)',
+  telegram: 'Telegram', whatsapp: 'WhatsApp', website: 'dynerox.com', privacy: 'aviso de privacidad', linkedin_company: 'LinkedIn de Dynerox', x: 'X'
+};
+
+let token = '';
+try { token = sessionStorage.getItem('dr_admin_token') || ''; } catch (e) {}
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let all = [];
+
+async function api(path, opts = {}) {
+  const headers = { 'content-type': 'application/json', ...(token ? { authorization: 'Bearer ' + token } : {}) };
+  const res = await fetch('/admin/api/' + path, { ...opts, headers, credentials: 'same-origin' });
+  if (res.status === 401) { showLogin(); throw new Error('auth'); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Error ' + res.status);
+  return data;
+}
+
+function showLogin(msg) { $('appView').hidden = true; $('loginView').hidden = false; if (msg) { $('loginErr').textContent = msg; $('loginErr').hidden = false; } }
+function toast(t) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 1800); }
+async function copy(text) { try { await navigator.clipboard.writeText(text); toast('Copiado'); } catch (e) { prompt('Copia el link:', text); } }
+
+const fmtAgo = iso => {
+  if (!iso) return '—';
+  const s = (Date.now() - new Date(iso)) / 1000;
+  if (s < 60) return 'hace segundos';
+  if (s < 3600) return 'hace ' + Math.round(s / 60) + ' min';
+  if (s < 86400) return 'hace ' + Math.round(s / 3600) + ' h';
+  return 'hace ' + Math.round(s / 86400) + ' d';
+};
+const fmtDate = iso => iso ? new Date(iso).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
+const fmtMs = ms => { ms = Number(ms) || 0; if (ms < 60000) return Math.round(ms / 1000) + ' s'; const m = Math.floor(ms / 60000), s = Math.round((ms % 60000) / 1000); return m + ' min ' + (s ? s + ' s' : ''); };
+
+async function load() {
+  try {
+    const { prospects } = await api('prospects');
+    all = prospects; $('loginView').hidden = true; $('appView').hidden = false; render();
+  } catch (e) { if (e.message !== 'auth') toast(e.message); }
+}
+
+function render() {
+  const q = $('search').value.trim().toLowerCase();
+  const rows = all.filter(p => !q || (p.name + ' ' + (p.company || '')).toLowerCase().includes(q));
+  $('countLabel').textContent = rows.length + (rows.length === 1 ? ' prospecto' : ' prospectos');
+  if (!rows.length) { $('list').innerHTML = '<div class="empty">Todavía no hay prospectos. Crea el primero arriba.</div>'; return; }
+  $('list').innerHTML = rows.map(p => `
+    <button class="row" type="button" data-id="${p.id}">
+      <div class="who"><b>${esc(p.name)}</b><span>${esc(p.company || 'Sin empresa')}</span>
+        <div class="chips">
+          ${p.active ? (p.opens ? '<span class="chip ok">Abrió</span>' : '<span class="chip">Sin abrir</span>') : '<span class="chip off">Revocado</span>'}
+          ${p.forwarded ? '<span class="chip warn">Posible reenvío</span>' : ''}
+          ${p.video_pct ? `<span class="chip">Video ${p.video_pct}%</span>` : ''}
+          ${p.bot_hits ? `<span class="chip">${p.bot_hits} vista${p.bot_hits > 1 ? 's' : ''} previa${p.bot_hits > 1 ? 's' : ''}</span>` : ''}
+        </div></div>
+      <div class="stats-m">
+        <div class="stat"><b>${p.opens}</b><small>aperturas</small></div>
+        <div class="stat"><b>${fmtAgo(p.last_open)}</b><small>última</small></div>
+        <div class="stat"><b>${fmtMs(p.active_ms)}</b><small>tiempo</small></div>
+        <div class="stat"><b>${p.sections_seen}/9</b><small>secciones</small></div>
+        <div class="stat"><b>${p.slides_seen}/8</b><small>slides</small></div>
+        <div class="stat"><b>${esc(p.country_list || '—')}</b><small>${p.devices} disp.</small></div>
+      </div>
+    </button>`).join('');
+}
+
+async function openDetail(id) {
+  $('drawer').hidden = false; document.body.style.overflow = 'hidden';
+  $('drawerIn').innerHTML = '<p class="muted">Cargando…</p>';
+  try {
+    const d = await api('prospects/' + id);
+    $('drawerIn').innerHTML = detailHtml(d);
+    wireDetail(d);
+  } catch (e) { if (e.message !== 'auth') $('drawerIn').innerHTML = '<p class="err">' + esc(e.message) + '</p>'; }
+}
+function closeDetail() { $('drawer').hidden = true; document.body.style.overflow = ''; }
+
+function detailHtml({ prospect: p, visits, events, bots, loads }) {
+  const human = visits.filter(v => v.human);
+  const activeMs = human.reduce((a, v) => a + (v.active_ms || 0), 0);
+  const devices = new Set(human.map(v => [v.device, v.os, v.browser].join(' · ')));
+  const countries = new Set(human.map(v => v.country).filter(Boolean));
+  const networks = new Set(human.map(v => v.ip_hash).filter(Boolean));
+  const forwarded = countries.size > 1 || devices.size > 1 || networks.size > 2;
+  const humanSids = new Set(human.map(v => v.sid));
+
+  // Section dwell (only from human visits)
+  const dwell = {}; const seen = new Set();
+  events.filter(e => humanSids.has(e.sid)).forEach(e => {
+    if (e.type === 'section_view') seen.add(e.data.id);
+    if (e.type === 'section_dwell') dwell[e.data.id] = (dwell[e.data.id] || 0) + (e.data.ms || 0);
+  });
+  const maxDwell = Math.max(1, ...Object.values(dwell));
+  const slideDwell = {}; const slidesSeen = new Set();
+  events.filter(e => humanSids.has(e.sid)).forEach(e => {
+    if (e.type === 'slide_view') slidesSeen.add(e.data.slide);
+    if (e.type === 'slide_dwell') slideDwell[e.data.slide] = (slideDwell[e.data.slide] || 0) + (e.data.ms || 0);
+  });
+  const videoMax = Math.max(0, ...visits.map(v => v.video_max_pct || 0));
+
+  const sectionBars = SECTIONS.filter(([id]) => id !== 'video' || seen.has('video')).map(([id, name]) => `
+    <div class="bar"><span>${name}</span><i><span style="width:${seen.has(id) ? Math.max(4, (dwell[id] || 0) / maxDwell * 100) : 0}%"></span></i><em>${seen.has(id) ? fmtMs(dwell[id] || 0) : 'no'}</em></div>`).join('');
+
+  const byVisit = {};
+  events.forEach(e => { (byVisit[e.sid] = byVisit[e.sid] || []).push(e); });
+  const visitBlocks = visits.map(v => {
+    const evs = (byVisit[v.sid] || []).filter(e => e.type !== 'js_loaded' && e.type !== 'section_dwell' && e.type !== 'slide_dwell');
+    return `<div class="visit">
+      <div class="visit__head">
+        <b>${fmtDate(v.started_at)}</b>
+        ${v.human ? '<span class="chip ok">Persona</span>' : '<span class="chip">Sin señal humana</span>'}
+        <span>${esc(v.country || '?')}${v.city ? ' · ' + esc(v.city) : ''}</span>
+        <span>${esc(v.device)} · ${esc(v.os)} · ${esc(v.browser)}</span>
+        <span class="muted">${fmtMs(v.active_ms)} · scroll ${v.max_scroll}%${v.video_max_pct ? ' · video ' + v.video_max_pct + '%' : ''}</span>
+        ${v.referrer ? `<span class="muted">desde ${esc(v.referrer)}</span>` : ''}
+      </div>
+      ${evs.length ? `<ul class="tl">${evs.map(e => `<li><time>${fmtTime(e.client_at || e.at)}</time><span>${describe(e)}</span></li>`).join('')}</ul>` : ''}
+    </div>`;
+  }).join('') || '<div class="empty">Nadie ha abierto este link todavía.</div>';
+
+  return `
+    <div class="drawer__top">
+      <div><h1 style="margin:0">${esc(p.name)}</h1><div class="muted">${esc(p.company || 'Sin empresa')} · creado ${fmtDate(p.created_at)}</div>
+        <div class="chips">${p.active ? '<span class="chip ok">Activo</span>' : '<span class="chip off">Revocado</span>'}${forwarded ? '<span class="chip warn">Posible reenvío</span>' : ''}</div></div>
+      <button type="button" id="dClose" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="actions">
+      <button type="button" id="dCopy">Copiar link</button>
+      ${p.active ? '<button type="button" class="danger" id="dRevoke">Revocar link</button>' : '<button type="button" class="primary" id="dActivate">Reactivar link</button>'}
+    </div>
+    <code class="muted" style="font-family:var(--mono);font-size:13px;word-break:break-all">${esc(p.link)}</code>
+
+    <div class="grid4">
+      <div class="kpi"><b>${human.length}</b><small>aperturas</small></div>
+      <div class="kpi"><b>${fmtAgo(human[0] && human[0].human_at)}</b><small>última apertura</small></div>
+      <div class="kpi"><b>${fmtMs(activeMs)}</b><small>tiempo activo</small></div>
+      <div class="kpi"><b>${videoMax ? videoMax + '%' : 'no'}</b><small>video</small></div>
+      <div class="kpi"><b>${slidesSeen.size}/8</b><small>slides vistas</small></div>
+      <div class="kpi"><b>${devices.size}</b><small>dispositivos</small></div>
+      <div class="kpi"><b>${[...countries].join(', ') || '—'}</b><small>países</small></div>
+      <div class="kpi"><b>${bots.length}</b><small>vistas previas / bots</small></div>
+    </div>
+
+    ${forwarded ? `<p class="chip warn" style="display:block;border-radius:10px;padding:10px 12px;line-height:1.5">El link se abrió desde ${devices.size} dispositivo(s), ${countries.size} país(es) y ${networks.size} red(es). Puede que lo hayan reenviado.</p>` : ''}
+
+    <section class="block"><h2>Notas</h2>
+      <textarea id="dNotes" aria-label="Notas">${esc(p.notes || '')}</textarea>
+      <div style="margin-top:8px"><button type="button" id="dSaveNotes">Guardar notas</button></div>
+    </section>
+
+    <section class="block"><h2>Secciones vistas y tiempo</h2><div class="bars">${sectionBars}</div></section>
+
+    ${slidesSeen.size ? `<section class="block"><h2>Slides del deck</h2><div class="bars">${[1,2,3,4,5,6,7,8].map(n => `<div class="bar"><span>Slide ${n}</span><i><span style="width:${slidesSeen.has(n) ? Math.max(4, Math.min(100, (slideDwell[n] || 0) / 30000 * 100)) : 0}%"></span></i><em>${slidesSeen.has(n) ? fmtMs(slideDwell[n] || 0) : 'no'}</em></div>`).join('')}</div></section>` : ''}
+
+    <section class="block"><h2>Línea de tiempo</h2>${visitBlocks}</section>
+
+    <section class="block"><h2>Vistas previas y bots</h2>
+      ${bots.length ? `<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Quién</th><th>País</th></tr></thead><tbody>${bots.map(b => `<tr><td>${fmtDate(b.at)}</td><td>${esc(b.bot_name)}</td><td>${esc(b.country || '')}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">Ninguna.</p>'}
+    </section>
+
+    <section class="block"><h2>Cargas del servidor</h2>
+      <p class="muted" style="margin-top:-6px">Cada vez que un navegador pidió la página, aunque nadie haya interactuado.</p>
+      ${loads.length ? `<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>País</th><th>Dispositivo</th></tr></thead><tbody>${loads.map(l => `<tr><td>${fmtDate(l.at)}</td><td>${esc(l.country || '')}${l.city ? ' · ' + esc(l.city) : ''}</td><td>${esc(l.device)} · ${esc(l.os)} · ${esc(l.browser)}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">Ninguna.</p>'}
+    </section>`;
+}
+
+function describe(e) {
+  const d = e.data || {};
+  switch (e.type) {
+    case 'human_open': return '<b>Abrió la página</b>' + (d.screen ? ` <span class="muted">pantalla ${esc(d.screen)}${d.lang ? ' · ' + esc(d.lang) : ''}${d.tz ? ' · ' + esc(d.tz) : ''}</span>` : '');
+    case 'section_view': return 'Vio ' + esc(SECTION_NAME[d.id] || d.id);
+    case 'scroll_depth': return 'Bajó al ' + esc(d.pct) + '% de la página';
+    case 'slide_view': return 'Vio la slide ' + esc(d.slide) + (d.via ? ` <span class="muted">(${esc(d.via)})</span>` : '');
+    case 'link_click': return 'Clic: ' + esc(LINK_NAME[d.id] || d.id);
+    case 'video_play': return '<b>Reprodujo el video</b>';
+    case 'video_progress': return 'Video al ' + esc(d.pct) + '%';
+    case 'video_pause': return 'Pausó el video en ' + esc(d.pct) + '%';
+    case 'video_end': return '<b>Terminó el video</b>';
+    default: return esc(e.type);
+  }
+}
+
+function wireDetail({ prospect: p }) {
+  $('dClose').onclick = closeDetail;
+  $('dCopy').onclick = () => copy(p.link);
+  const act = async (path, msg) => { await api('prospects/' + p.id + '/' + path, { method: 'POST' }); toast(msg); await load(); openDetail(p.id); };
+  if ($('dRevoke')) $('dRevoke').onclick = () => act('revoke', 'Link revocado');
+  if ($('dActivate')) $('dActivate').onclick = () => act('activate', 'Link reactivado');
+  $('dSaveNotes').onclick = async () => { await api('prospects/' + p.id, { method: 'PATCH', body: JSON.stringify({ notes: $('dNotes').value }) }); toast('Notas guardadas'); load(); };
+}
+
+$('newForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('fSubmit').disabled = true;
+  try {
+    const { prospect } = await api('prospects', { method: 'POST', body: JSON.stringify({ name: $('fName').value, company: $('fCompany').value, notes: $('fNotes').value }) });
+    $('createdWho').textContent = prospect.name + (prospect.company ? ' · ' + prospect.company : '');
+    $('createdLink').textContent = prospect.link;
+    $('created').hidden = false;
+    $('createdCopy').onclick = () => copy(prospect.link);
+    e.target.reset();
+    load();
+  } catch (err) { if (err.message !== 'auth') toast(err.message); }
+  $('fSubmit').disabled = false;
+});
+$('list').addEventListener('click', e => { const r = e.target.closest('.row'); if (r) openDetail(r.dataset.id); });
+$('drawer').addEventListener('click', e => { if (e.target === $('drawer')) closeDetail(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('drawer').hidden) closeDetail(); });
+$('search').addEventListener('input', render);
+$('loginForm').addEventListener('submit', e => {
+  e.preventDefault();
+  token = $('tokenInput').value.trim();
+  try { sessionStorage.setItem('dr_admin_token', token); } catch (err) {}
+  $('loginErr').hidden = true;
+  load().then(() => { if (!$('appView').hidden) $('tokenInput').value = ''; });
+});
+load();
+setInterval(() => { if (!$('appView').hidden && $('drawer').hidden) load(); }, 60000);
+</script>
+</body>
+</html>

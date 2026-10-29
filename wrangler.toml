@@ -1,0 +1,21 @@
+"$schema" = "./node_modules/wrangler/config-schema.json"
+name = "dynerox-dataroom"
+pages_build_output_dir = "./public"
+compatibility_date = "2026-09-15"
+
+# Create it once:  npx wrangler d1 create dynerox-dataroom
+# then paste the database_id it prints.
+[[d1_databases]]
+binding = "DB"
+database_name = "dynerox-dataroom"
+database_id = "REPLACE_WITH_DATABASE_ID"
+migrations_dir = "migrations"
+
+# Plain settings. Secrets (IP_SALT, ADMIN_TOKEN) go in the dashboard, never here.
+[vars]
+SITE_URL = "https://pitchdeck.dynerox.com"
+VIDEO_URL = ""                 # YouTube or Vimeo link; empty hides the video section
+SHOW_PROSPECT_NAME = "false"   # "true" shows "Prepared for <name>" under the title
+ACCESS_TEAM_DOMAIN = ""        # e.g. "dynerox.cloudflareaccess.com" (step 7 of the README)
+ACCESS_AUD = ""                # Application Audience (AUD) tag of the /admin Access app
+ADMIN_EMAILS = ""              # e.g. "hugo@dynerox.com" (empty = anyone Access lets in)

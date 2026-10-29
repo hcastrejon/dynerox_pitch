@@ -1,0 +1,16 @@
+# Static files. Responses from Functions get the same headers in functions/_middleware.js
+/*
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+  Referrer-Policy: strict-origin
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+/slides/*
+  Cache-Control: public, max-age=86400
+
+/img/*
+  Cache-Control: public, max-age=86400
+
+/admin/*
+  Cache-Control: no-store

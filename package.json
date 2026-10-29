@@ -1,0 +1,15 @@
+{
+  "name": "dynerox-dataroom",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:template": "node scripts/build-template.mjs",
+    "dev": "wrangler pages dev",
+    "db:migrate:local": "wrangler d1 migrations apply dynerox-dataroom --local",
+    "db:migrate": "wrangler d1 migrations apply dynerox-dataroom --remote",
+    "prospect": "node scripts/prospect.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
