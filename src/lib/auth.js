@@ -28,7 +28,14 @@ export async function requireLevel(context, level, opts = {}) {
       return deny(403, 'investor-level-not-enabled');
     case 'admin': {
       const admin = await adminIdentity(context.request, env);
-      return admin ? { ok: true, level, admin } : deny(401, 'admin-required');
+      if (admin) return { ok: true, level, admin };
+      // Tell the panel why, so setup problems are visible.
+      const accessOn = !!(env.ACCESS_TEAM_DOMAIN && env.ACCESS_AUD);
+      const token = String(env.ADMIN_TOKEN || '').trim();
+      const sent = (context.request.headers.get('authorization') || '').startsWith('Bearer ');
+      if (!token && !accessOn) return deny(401, 'admin-not-configured');
+      if (token && token.length < 24 && !accessOn) return deny(401, 'admin-token-too-short');
+      return deny(401, sent ? 'admin-token-wrong' : 'admin-required');
     }
     default:
       return deny(500, 'unknown-level');
@@ -53,8 +60,9 @@ async function adminIdentity(request, env) {
   }
   // 2) Bearer token (setup and the command-line script).
   const auth = request.headers.get('authorization') || '';
-  if (env.ADMIN_TOKEN && env.ADMIN_TOKEN.length >= 24 && auth.startsWith('Bearer ')) {
-    if (await safeEqual(auth.slice(7).trim(), env.ADMIN_TOKEN)) return { via: 'token' };
+  const token = String(env.ADMIN_TOKEN || '').trim();
+  if (token.length >= 24 && auth.startsWith('Bearer ')) {
+    if (await safeEqual(auth.slice(7).trim(), token)) return { via: 'token' };
   }
   return null;
 }

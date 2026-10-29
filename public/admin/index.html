@@ -156,13 +156,26 @@ let all = [];
 async function api(path, opts = {}) {
   const headers = { 'content-type': 'application/json', ...(token ? { authorization: 'Bearer ' + token } : {}) };
   const res = await fetch('/admin/api/' + path, { ...opts, headers, credentials: 'same-origin' });
-  if (res.status === 401) { showLogin(); throw new Error('auth'); }
+  if (res.status === 401) {
+    const info = await res.json().catch(() => ({}));
+    const msgs = {
+      'admin-not-configured': 'Falta el secreto ADMIN_TOKEN en Cloudflare (Settings → Variables and Secrets, tipo Secret) y volver a desplegar.',
+      'admin-token-too-short': 'El ADMIN_TOKEN guardado en Cloudflare es muy corto. Debe tener al menos 24 caracteres. Cámbialo y vuelve a desplegar.',
+      'admin-token-wrong': 'El token no coincide con el ADMIN_TOKEN guardado en Cloudflare. Revisa que lo hayas copiado completo, sin espacios.'
+    };
+    showLogin(token ? (msgs[info.reason] || 'No autorizado.') : (info.reason === 'admin-required' ? '' : msgs[info.reason]));
+    throw new Error('auth');
+  }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'Error ' + res.status);
+  if (!res.ok) throw new Error(res.status === 404 ? 'El servidor no encontró la API del panel (404). Revisa que el despliegue de Pages haya terminado bien.' : (data.error || 'Error ' + res.status));
   return data;
 }
 
-function showLogin(msg) { $('appView').hidden = true; $('loginView').hidden = false; if (msg) { $('loginErr').textContent = msg; $('loginErr').hidden = false; } }
+function showLogin(msg) {
+  $('appView').hidden = true; $('loginView').hidden = false;
+  $('loginErr').textContent = msg || ''; $('loginErr').hidden = !msg;
+  if (msg && token) { token = ''; try { sessionStorage.removeItem('dr_admin_token'); } catch (e) {} }
+}
 function toast(t) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 1800); }
 async function copy(text) { try { await navigator.clipboard.writeText(text); toast('Copiado'); } catch (e) { prompt('Copia el link:', text); } }
 
@@ -182,7 +195,11 @@ async function load() {
   try {
     const { prospects } = await api('prospects');
     all = prospects; $('loginView').hidden = true; $('appView').hidden = false; render();
-  } catch (e) { if (e.message !== 'auth') toast(e.message); }
+  } catch (e) {
+    if (e.message === 'auth') return;
+    if (!$('appView').hidden) toast(e.message);
+    else { $('loginView').hidden = false; $('loginErr').textContent = e.message === 'Failed to fetch' ? 'No hay conexión con el servidor.' : e.message; $('loginErr').hidden = false; }
+  }
 }
 
 function render() {
@@ -356,6 +373,7 @@ $('search').addEventListener('input', render);
 $('loginForm').addEventListener('submit', e => {
   e.preventDefault();
   token = $('tokenInput').value.trim();
+  $('loginErr').textContent = 'Revisando…'; $('loginErr').hidden = false;
   try { sessionStorage.setItem('dr_admin_token', token); } catch (err) {}
   $('loginErr').hidden = true;
   load().then(() => { if (!$('appView').hidden) $('tokenInput').value = ''; });
