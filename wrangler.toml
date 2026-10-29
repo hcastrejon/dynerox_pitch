@@ -8,7 +8,7 @@ compatibility_date = "2026-09-15"
 [[d1_databases]]
 binding = "DB"
 database_name = "dynerox-dataroom"
-database_id = "REPLACE_WITH_DATABASE_ID"
+database_id = "4c919597-55c6-41be-b4ee-cbd74e8dfd8f"
 migrations_dir = "migrations"
 
 # Plain settings. Secrets (IP_SALT, ADMIN_TOKEN) go in the dashboard, never here.
